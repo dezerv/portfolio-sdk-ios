@@ -79,12 +79,12 @@ jobs:
             echo "Error: Package.swift appears to be corrupted"
             exit 1
           fi
-          
+
           if ! grep -q "${{ github.event.client_payload.checksum }}" Package.swift; then
             echo "Error: Checksum not found in updated Package.swift"
             exit 1
           fi
-          
+
           echo "Package.swift validation passed"
 
       - name: 📦 Commit and Push Updated Package.swift
@@ -113,18 +113,10 @@ jobs:
           git tag "$VERSION"
           echo "Created tag $VERSION"
 
-          # Push tag first
-          git push origin "$VERSION"
-          echo "Pushed tag $VERSION"
-
-          # Push main branch if there are commits to push
-          if git log origin/main..HEAD --oneline | grep -q .; then
-            git push origin main
-            echo "Pushed main branch"
-          else
-            echo "No commits to push to main branch"
-          fi
-
+          # Push both commits and tags
+          git push origin main --tags
+          echo "Pushed main branch and tags"
+          
       - name: 📊 Summary
         run: |
           echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
