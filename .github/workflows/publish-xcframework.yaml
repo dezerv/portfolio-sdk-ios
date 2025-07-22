@@ -1,4 +1,3 @@
-# .github/workflows/publish-xcframework.yaml
 name: Publish XCFramework to SPM
 
 on:
@@ -9,43 +8,127 @@ jobs:
   update_and_publish:
     runs-on: ubuntu-latest # Can use a cheaper Linux runner as no Xcode build is needed
     steps:
-      - name: Checkout Public SPM Repository
+      - name: ⬇️ Checkout Public SPM Repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # Use default GITHUB_TOKEN for actions in this repo
+          fetch-depth: 0 # Fetch all history for proper tagging
 
-      - name: Configure Git
+      - name: 🔧 Configure Git
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
-      - name: Update Package.swift
+      - name: 📋 Display Payload Information
+        run: |
+          echo "Received payload:"
+          echo "Version: ${{ github.event.client_payload.version }}"
+          echo "Checksum: ${{ github.event.client_payload.checksum }}"
+
+      - name: 📝 Update Package.swift
         run: |
           VERSION="${{ github.event.client_payload.version }}"
           CHECKSUM="${{ github.event.client_payload.checksum }}"
           FRAMEWORK_NAME="PortfolioTrackerSDK" # Should match the framework name from private repo
-          PACKAGE_NAME="PortfolioTrackerSDK" # Should match your public package name
 
           echo "Updating Package.swift for version $VERSION with checksum $CHECKSUM"
 
-          # Use sed to replace the URL and checksum in Package.swift
-          # This assumes a specific structure for your Package.swift
-          # Be very careful with these sed commands, they are pattern-specific!
-          sed -i '' "s|url: \".*\"|url: \"https://github.com/${{ github.repository }}/releases/download/$VERSION/${FRAMEWORK_NAME}.xcframework.zip\"|" Package.swift
-          sed -i '' "s|checksum: \".*\"|checksum: \"$CHECKSUM\"|" Package.swift
+          # Check if Package.swift exists
+          if [ ! -f "Package.swift" ]; then
+            echo "Error: Package.swift not found!"
+            exit 1
+          fi
 
-          # Verify changes (optional)
+          echo "Current Package.swift content:"
           cat Package.swift
+          echo "------------------------"
 
-      - name: Commit and Push Updated Package.swift
+          # Create backup of Package.swift
+          cp Package.swift Package.swift.backup
+
+          # For Ubuntu (GNU sed), use -i without empty string
+          # Update the URL - handle both possible patterns in your Package.swift
+          # Pattern 1: Match any GitHub release URL
+          sed -i "s|url: \"https://github.com/[^/]*/[^/]*/releases/download/[^/]*/[^\"]*\"|url: \"https://github.com/${{ github.repository }}/releases/download/$VERSION/${FRAMEWORK_NAME}.xcframework.zip\"|g" Package.swift
+
+          # Pattern 2: Fallback for any other URL pattern
+          sed -i "s|url: \"[^\"]*\\.xcframework\\.zip\"|url: \"https://github.com/${{ github.repository }}/releases/download/$VERSION/${FRAMEWORK_NAME}.xcframework.zip\"|g" Package.swift
+
+          # Update the checksum - handle both placeholder and actual checksum patterns
+          sed -i "s|checksum: \"YOUR_SHA256_CHECKSUM_HERE\"|checksum: \"$CHECKSUM\"|g" Package.swift
+          sed -i "s|checksum: \"[a-fA-F0-9]\\{64\\}\"|checksum: \"$CHECKSUM\"|g" Package.swift
+
+          echo "Updated Package.swift content:"
+          cat Package.swift
+          echo "------------------------"
+
+          # Verify that changes were made
+          if diff Package.swift.backup Package.swift > /dev/null; then
+            echo "Warning: No changes detected in Package.swift"
+            echo "Checking if patterns match..."
+            grep -n "url:" Package.swift || echo "No URL found"
+            grep -n "checksum:" Package.swift || echo "No checksum found"
+          else
+            echo "Changes successfully applied to Package.swift"
+          fi
+
+      - name: 🔍 Validate Package.swift
         run: |
-          git add Package.swift
-          git commit -m "chore(release): Update PortfolioTrackerSDK to v${{ github.event.client_payload.version }}" || echo "No changes to commit"
+          # Basic validation to ensure the file is still valid Swift
+          if ! grep -q "import PackageDescription" Package.swift; then
+            echo "Error: Package.swift appears to be corrupted"
+            exit 1
+          fi
+          
+          if ! grep -q "${{ github.event.client_payload.checksum }}" Package.swift; then
+            echo "Error: Checksum not found in updated Package.swift"
+            exit 1
+          fi
+          
+          echo "Package.swift validation passed"
 
-      - name: Tag and Push Release
+      - name: 📦 Commit and Push Updated Package.swift
+        run: |
+          # Check if there are changes to commit
+          if git diff --quiet Package.swift; then
+            echo "No changes to Package.swift to commit"
+          else
+            git add Package.swift
+            git commit -m "chore(release): Update PortfolioTrackerSDK to v${{ github.event.client_payload.version }}"
+            echo "Package.swift changes committed"
+          fi
+
+      - name: 🏷️ Tag and Push Release
         env:
           VERSION: ${{ github.event.client_payload.version }}
         run: |
+          # Check if tag already exists
+          if git tag -l | grep -q "^$VERSION$"; then
+            echo "Tag $VERSION already exists, deleting it"
+            git tag -d "$VERSION" || true
+            git push origin ":refs/tags/$VERSION" || true
+          fi
+
+          # Create and push new tag
           git tag "$VERSION"
+          echo "Created tag $VERSION"
+
+          # Push tag first
           git push origin "$VERSION"
-          git push origin main # Push main branch if Package.swift was committed
+          echo "Pushed tag $VERSION"
+
+          # Push main branch if there are commits to push
+          if git log origin/main..HEAD --oneline | grep -q .; then
+            git push origin main
+            echo "Pushed main branch"
+          else
+            echo "No commits to push to main branch"
+          fi
+
+      - name: 📊 Summary
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ github.event.client_payload.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Checksum:** ${{ github.event.client_payload.checksum }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL:** https://github.com/${{ github.repository }}/releases/tag/${{ github.event.client_payload.version }}" >> $GITHUB_STEP_SUMMARY
