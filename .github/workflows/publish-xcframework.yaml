@@ -114,9 +114,9 @@ jobs:
           echo "Created tag $VERSION"
 
           # Push both commits and tags
-          git push origin main --tags
-          echo "Pushed main branch and tags"
-          
+          git push origin master --tags
+          echo "Pushed master branch and tags"
+
       - name: 📊 Summary
         run: |
           echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
