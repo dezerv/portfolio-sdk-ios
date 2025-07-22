@@ -1,0 +1,51 @@
+# .github/workflows/publish-xcframework.yaml
+name: Publish XCFramework to SPM
+
+on:
+  repository_dispatch:
+    types: [update-xcframework-package] # Matches the event-type from the private repo workflow
+
+jobs:
+  update_and_publish:
+    runs-on: ubuntu-latest # Can use a cheaper Linux runner as no Xcode build is needed
+    steps:
+      - name: Checkout Public SPM Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} # Use default GITHUB_TOKEN for actions in this repo
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Update Package.swift
+        run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          CHECKSUM="${{ github.event.client_payload.checksum }}"
+          FRAMEWORK_NAME="PortfolioTrackerSDK" # Should match the framework name from private repo
+          PACKAGE_NAME="PortfolioTrackerSDK" # Should match your public package name
+
+          echo "Updating Package.swift for version $VERSION with checksum $CHECKSUM"
+
+          # Use sed to replace the URL and checksum in Package.swift
+          # This assumes a specific structure for your Package.swift
+          # Be very careful with these sed commands, they are pattern-specific!
+          sed -i '' "s|url: \".*\"|url: \"https://github.com/${{ github.repository }}/releases/download/$VERSION/${FRAMEWORK_NAME}.xcframework.zip\"|" Package.swift
+          sed -i '' "s|checksum: \".*\"|checksum: \"$CHECKSUM\"|" Package.swift
+
+          # Verify changes (optional)
+          cat Package.swift
+
+      - name: Commit and Push Updated Package.swift
+        run: |
+          git add Package.swift
+          git commit -m "chore(release): Update PortfolioTrackerSDK to v${{ github.event.client_payload.version }}" || echo "No changes to commit"
+
+      - name: Tag and Push Release
+        env:
+          VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          git push origin main # Push main branch if Package.swift was committed
