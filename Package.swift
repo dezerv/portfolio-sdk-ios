@@ -13,10 +13,10 @@ let package = Package(
         )
     ],
     targets: [
-        .binaryTarget( // This is now a binary target
-            name: "PortfolioTrackerSDK", // A unique name for your binary target
-            url: "https://github.com/yourusername/YourRepoName/releases/download/1.0.0/DezervPartnerShipPackage.xcframework.zip", // REPLACE with your actual URL
-            checksum: "YOUR_SHA256_CHECKSUM_HERE" // REPLACE with the actual checksum of the .zip file
-        )
+        .binaryTarget(
+        name: "PortfolioTrackerSDK",
+        url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/0.0.1/PortfolioTrackerSDK.xcframework.zip",
+        checksum: "13fabd57d114d91e3f8ba1c871039815523c3867cfbcc1dd59ae798e51246dda"
+    )
     ]
 )
