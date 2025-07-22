@@ -11,7 +11,7 @@ jobs:
       - name: ⬇️ Checkout Public SPM Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Use default GITHUB_TOKEN for actions in this repo
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
           fetch-depth: 0 # Fetch all history for proper tagging
 
       - name: 🔧 Configure Git
@@ -79,12 +79,12 @@ jobs:
             echo "Error: Package.swift appears to be corrupted"
             exit 1
           fi
-
+          
           if ! grep -q "${{ github.event.client_payload.checksum }}" Package.swift; then
             echo "Error: Checksum not found in updated Package.swift"
             exit 1
           fi
-
+          
           echo "Package.swift validation passed"
 
       - name: 📦 Commit and Push Updated Package.swift
@@ -96,26 +96,11 @@ jobs:
             git add Package.swift
             git commit -m "chore(release): Update PortfolioTrackerSDK to v${{ github.event.client_payload.version }}"
             echo "Package.swift changes committed"
+            
+            # Push the changes
+            git push origin HEAD
+            echo "Changes pushed to remote repository"
           fi
-
-      - name: 🏷️ Tag and Push Release
-        env:
-          VERSION: ${{ github.event.client_payload.version }}
-        run: |
-          # Check if tag already exists
-          if git tag -l | grep -q "^$VERSION$"; then
-            echo "Tag $VERSION already exists, deleting it"
-            git tag -d "$VERSION" || true
-            git push origin ":refs/tags/$VERSION" || true
-          fi
-
-          # Create and push new tag
-          git tag "$VERSION"
-          echo "Created tag $VERSION"
-
-          # Push both commits and tags
-          git push origin master --tags
-          echo "Pushed master branch and tags"
 
       - name: 📊 Summary
         run: |
