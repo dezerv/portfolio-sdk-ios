@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 5.7
 import PackageDescription
 
 let package = Package(
@@ -9,14 +9,14 @@ let package = Package(
     products: [
         .library(
             name: "PortfolioTrackerSDK",
-            targets: ["PortfolioTrackerSDK"] // This name should match your binary target
-        )
+            targets: ["PortfolioTrackerSDK"]
+        ),
     ],
     targets: [
         .binaryTarget(
-        name: "PortfolioTrackerSDK",
-        url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/0.1.7/PortfolioTrackerSDK.xcframework.zip",
-        checksum: "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
-    )
+            name: "PortfolioTrackerSDK",
+            url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/v0.1.8/PortfolioTrackerSDK.xcframework.zip",
+            checksum: "ef9806235d923c1fc91bd47ccd0533a95afff181e8c2b6cb895d996f0cf36437"
+        )
     ]
 )
