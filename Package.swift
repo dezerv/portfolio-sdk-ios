@@ -13,7 +13,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/getsentry/sentry-cocoa.git", from: "8.54.0")
+        .package(url: "https://github.com/getsentry/sentry-cocoa.git", exact: "8.43.0")
     ],
     targets: [
         .target(
@@ -26,7 +26,7 @@ let package = Package(
         .binaryTarget(
             name: "PortfolioTrackerSDK",
             url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/v0.7.0/PortfolioTrackerSDK.xcframework.zip",
-            checksum: "d4ca3e04a4d1b6f85c4c858179696b42b74ab442cbc126c4b382db45c692304d"
+            checksum: "71c63261c2251fbbc0d9ad3487785c2e7511fca694f557b4cdc371cef10d3f0f"
         )
     ]
 )
