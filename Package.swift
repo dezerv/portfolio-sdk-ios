@@ -12,21 +12,17 @@ let package = Package(
             targets: ["PortfolioTrackerSDKWrapper"]
         ),
     ],
-    dependencies: [
-        .package(url: "https://github.com/getsentry/sentry-cocoa.git", exact: "8.43.0")
-    ],
     targets: [
         .target(
             name: "PortfolioTrackerSDKWrapper",
             dependencies: [
-                "PortfolioTrackerSDK",
-                .product(name: "Sentry-Dynamic", package: "sentry-cocoa")
+                "PortfolioTrackerSDK"
             ]
         ),
         .binaryTarget(
             name: "PortfolioTrackerSDK",
-            url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/v0.7.3/PortfolioTrackerSDK.xcframework.zip",
-            checksum: "6994a9955cbd6eb1fbd05d1a9d5f72bd240b19ab61d105809a358b0e2084e146"
+            url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/v0.7.4/PortfolioTrackerSDK.xcframework.zip",
+            checksum: "db38e86df76fc35de6c15594d7399d4e79f674368eac8bbdff12ad0b0939cf3d"
         )
     ]
 )
