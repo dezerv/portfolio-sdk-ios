@@ -1,0 +1,16 @@
+name: Security Checks
+
+on:
+  pull_request:
+    branches: [ master, integration, develop, deploy, main ]
+  push:
+    branches: [ master, integration, develop, deploy, main ]
+
+jobs:
+  call-security-scans:
+
+    uses: dezerv/security-commons/.github/workflows/security-scans.yml@master
+    secrets:
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      SLACK_WEBHOOK_URL_SECURITY_COMMON_SCANS: ${{ secrets.SLACK_WEBHOOK_URL_SECURITY_COMMON_SCANS }}
