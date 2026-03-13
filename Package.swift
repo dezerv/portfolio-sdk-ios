@@ -25,8 +25,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "PortfolioTrackerSDK",
-            url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/v0.7.7/PortfolioTrackerSDK.xcframework.zip",
-            checksum: "1de1c2748a0e5325ee60bf403d68fc15e9f530e5d4156a52d0d704e969e5baca"
+            url: "https://github.com/dezerv/portfolio-sdk-ios/releases/download/vv0.7.8/PortfolioTrackerSDK.xcframework.zip",
+            checksum: "922ef8a458c5d6aa4b2af0428967e5524bfadc8159729220f9c6eed4aad4fc52"
         )
     ]
 )
